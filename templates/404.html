@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Seite nicht gefunden | MoviWeb App{% endblock %}
+{% block content %}
+    <section class="error-page">
+        <p class="error-code">404</p>
+        <h1>Seite nicht gefunden</h1>
+        <p>Die angeforderte Seite oder Ressource existiert nicht.</p>
+        <a class="button-link" href="{{ url_for('index') }}">Zur Startseite</a>
+    </section>
+{% endblock %}

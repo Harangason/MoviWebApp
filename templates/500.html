@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Serverfehler | MoviWeb App{% endblock %}
+{% block content %}
+    <section class="error-page">
+        <p class="error-code">500</p>
+        <h1>Etwas ist schiefgelaufen</h1>
+        <p>Die Anfrage konnte nicht verarbeitet werden. Bitte versuche es später erneut.</p>
+        <a class="button-link" href="{{ url_for('index') }}">Zur Startseite</a>
+    </section>
+{% endblock %}
