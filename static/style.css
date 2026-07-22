@@ -274,6 +274,7 @@ h2 {
 }
 
 input,
+select,
 button {
     min-height: 3rem;
     border: 1px solid var(--border);
@@ -282,7 +283,8 @@ button {
     font: inherit;
 }
 
-input {
+input,
+select {
     min-width: 0;
     flex: 1;
     outline: none;
@@ -295,9 +297,30 @@ input::placeholder {
     color: #747a8a;
 }
 
-input:focus {
+input:focus,
+select:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 .22rem rgb(244 185 66 / 13%);
+}
+
+select {
+    width: 100%;
+}
+
+.movie-save-form {
+    display: grid;
+    gap: .55rem;
+    margin-top: 1rem;
+}
+
+.movie-save-form label {
+    color: var(--muted);
+    font-size: .8rem;
+    font-weight: 750;
+}
+
+.movie-save-form button {
+    width: 100%;
 }
 
 button,

@@ -3,7 +3,11 @@
 {% block title %}Film suchen | MoviWeb App{% endblock %}
 
 {% block content %}
-    <h1>Film hinzufügen</h1>
+    <header class="page-heading">
+        <p class="eyebrow">OMDb-Filmsuche</p>
+        <h1>Film entdecken</h1>
+        <p class="lead">Suche einen Film und füge den passenden Treffer anschließend einer Nutzersammlung hinzu.</p>
+    </header>
     <form class="search" method="post">
         <label for="query">Filmtitel</label>
         <div class="search-row">
@@ -24,6 +28,15 @@
         <p class="message error">{{ error }}</p>
     {% endif %}
 
+    {% if not users %}
+        <div class="empty-state">
+            <span aria-hidden="true">👤</span>
+            <h3>Zuerst einen Nutzer anlegen</h3>
+            <p>Filme benötigen eine persönliche Sammlung.</p>
+            <a class="button-link" href="{{ url_for('index') }}">Zur Nutzerverwaltung</a>
+        </div>
+    {% endif %}
+
     {% if movies %}
         <h2>Suchergebnisse</h2>
         <div class="movie-grid">
@@ -36,8 +49,29 @@
                     {% endif %}
                     <div class="movie-info">
                         <h3>{{ movie.Title }}</h3>
-                        <p>{{ movie.Year }}</p>
-                        <small>{{ movie.imdbID }}</small>
+                        <div class="movie-meta">
+                            <span>{{ movie.Year }}</span>
+                            {% if movie.imdbRating and movie.imdbRating != 'N/A' %}
+                                <span class="rating">★ {{ movie.imdbRating }}</span>
+                            {% endif %}
+                        </div>
+                        {% if users %}
+                            <form class="movie-save-form" action="{{ url_for('save_movie') }}" method="post">
+                                <input type="hidden" name="imdb_id" value="{{ movie.imdbID }}">
+                                {% if user_id %}
+                                    <input type="hidden" name="user_id" value="{{ user_id }}">
+                                {% else %}
+                                    <label for="user-{{ movie.imdbID }}">Sammlung</label>
+                                    <select id="user-{{ movie.imdbID }}" name="user_id" required>
+                                        <option value="" selected disabled>Nutzer wählen</option>
+                                        {% for user in users %}
+                                            <option value="{{ user.id }}">{{ user.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                {% endif %}
+                                <button type="submit">Zur Sammlung hinzufügen</button>
+                            </form>
+                        {% endif %}
                     </div>
                 </article>
             {% endfor %}

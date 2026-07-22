@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask, abort, redirect, render_template, request, url_for
 
 from data_manager import DataManager, DataManagerError, DuplicateMovieError
@@ -66,25 +68,7 @@ def user_movies(user_id):
         else:
             try:
                 search_result = search_movies(title)[0]
-                result = get_movie_by_id(search_result["imdbID"])
-                year_text = result.get("Year", "")
-                year = int(year_text[:4]) if year_text[:4].isdigit() else None
-                rating_text = result.get("imdbRating", "")
-                rating = float(rating_text) if rating_text != "N/A" else None
-                poster = result.get("Poster")
-                movie = Movie(
-                    title=result["Title"],
-                    director=(
-                        result.get("Director")
-                        if result.get("Director") != "N/A"
-                        else None
-                    ),
-                    year=year,
-                    rating=rating,
-                    poster_url=poster if poster != "N/A" else None,
-                    imdb_id=result.get("imdbID"),
-                    user_id=user_id,
-                )
+                movie = _movie_from_omdb(search_result["imdbID"], user_id)
                 data_manager.add_movie(movie)
                 return redirect(url_for("user_movies", user_id=user_id))
             except DuplicateMovieError as duplicate_error:
@@ -228,7 +212,10 @@ def main():
     else:
         initialize_database(app)
 
-    app.run(debug=True)
+    host = os.getenv("MOVIWEB_HOST", "127.0.0.1")
+    port = int(os.getenv("MOVIWEB_PORT", "5001"))
+    debug = os.getenv("FLASK_DEBUG", "0").lower() in {"1", "true", "yes"}
+    app.run(host=host, port=port, debug=debug)
 
 
 
