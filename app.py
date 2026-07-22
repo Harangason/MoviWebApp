@@ -148,6 +148,77 @@ def add_movie(user_id=None):
         query=query,
         error=error,
         user_id=user_id,
+        users=data_manager.get_users(),
+    )
+
+
+@app.route("/add_movie/save", methods=["POST"])
+def save_movie():
+    imdb_id = request.form.get("imdb_id", "").strip()
+    user_id_text = request.form.get("user_id", "").strip()
+
+    if not imdb_id or not user_id_text.isdigit():
+        abort(400)
+
+    user_id = int(user_id_text)
+    if data_manager.get_user(user_id) is None:
+        abort(404)
+
+    result = None
+    try:
+        result = get_movie_by_id(imdb_id)
+        movie = _movie_from_omdb(imdb_id, user_id, result=result)
+        data_manager.add_movie(movie)
+    except DuplicateMovieError as duplicate_error:
+        return (
+            render_template(
+                "add_movie.html",
+                movies=[result] if result else [],
+                query=result.get("Title", "") if result else "",
+                error=str(duplicate_error),
+                user_id=user_id,
+                users=data_manager.get_users(),
+            ),
+            409,
+        )
+    except (OMDbAPIError, KeyError, ValueError) as api_error:
+        return (
+            render_template(
+                "add_movie.html",
+                movies=[],
+                query="",
+                error=str(api_error) or "Filmdaten konnten nicht geladen werden.",
+                user_id=user_id,
+                users=data_manager.get_users(),
+            ),
+            502,
+        )
+
+    return redirect(url_for("user_detail", user_id=user_id))
+
+
+def _movie_from_omdb(imdb_id, user_id, result=None):
+    """Build a Movie model from one detailed OMDb response."""
+    result = result or get_movie_by_id(imdb_id)
+    year_text = result.get("Year", "")
+    year = int(year_text[:4]) if year_text[:4].isdigit() else None
+    rating_text = result.get("imdbRating")
+    rating = (
+        float(rating_text)
+        if rating_text and rating_text != "N/A"
+        else None
+    )
+    director = result.get("Director")
+    poster = result.get("Poster")
+
+    return Movie(
+        title=result["Title"],
+        director=director if director and director != "N/A" else None,
+        year=year,
+        rating=rating,
+        poster_url=poster if poster and poster != "N/A" else None,
+        imdb_id=result.get("imdbID") or imdb_id,
+        user_id=user_id,
     )
 
 def main():
