@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Nutzer | MoviWeb App{% endblock %}
+
+{% block content %}
+    <h1>MoviWeb App</h1>
+
+    <section class="panel">
+        <h2>Nutzer hinzufügen</h2>
+        <form class="search-row" action="{{ url_for('add_user') }}" method="post">
+            <input name="name" placeholder="Name" required>
+            <button type="submit">Hinzufügen</button>
+        </form>
+    </section>
+
+    <section>
+        <h2>Nutzer</h2>
+        {% if users %}
+            <ul class="user-list">
+                {% for user in users %}
+                    <li>
+                        <a href="{{ url_for('user_movies', user_id=user.id) }}">
+                            {{ user.name }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Noch keine Nutzer vorhanden.</p>
+        {% endif %}
+    </section>
+{% endblock %}

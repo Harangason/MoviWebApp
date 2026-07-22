@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Film suchen | MoviWeb App{% endblock %}
+
+{% block content %}
+    <h1>Film hinzufügen</h1>
+    <form class="search" method="post">
+        <label for="query">Filmtitel</label>
+        <div class="search-row">
+            <input
+                id="query"
+                name="query"
+                type="search"
+                value="{{ query }}"
+                placeholder="z. B. The Matrix"
+                required
+                autofocus
+            >
+            <button type="submit">Suchen</button>
+        </div>
+    </form>
+
+    {% if error %}
+        <p class="message error">{{ error }}</p>
+    {% endif %}
+
+    {% if movies %}
+        <h2>Suchergebnisse</h2>
+        <div class="movie-grid">
+            {% for movie in movies %}
+                <article class="movie-card">
+                    {% if movie.Poster and movie.Poster != 'N/A' %}
+                        <img src="{{ movie.Poster }}" alt="Poster von {{ movie.Title }}">
+                    {% else %}
+                        <div class="poster-placeholder">Kein Poster</div>
+                    {% endif %}
+                    <div class="movie-info">
+                        <h3>{{ movie.Title }}</h3>
+                        <p>{{ movie.Year }}</p>
+                        <small>{{ movie.imdbID }}</small>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}

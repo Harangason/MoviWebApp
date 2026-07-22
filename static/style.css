@@ -1,0 +1,163 @@
+:root {
+    color-scheme: dark;
+    font-family: system-ui, sans-serif;
+    background: #10131a;
+    color: #f4f6fb;
+}
+
+body {
+    margin: 0;
+}
+
+.site-header {
+    border-bottom: 1px solid #2d3547;
+    background: #1b2130;
+}
+
+.site-header .container {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.brand {
+    color: #f4f6fb;
+    font-size: 1.2rem;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.container {
+    width: min(100% - 2rem, 960px);
+    margin: 3rem auto;
+}
+
+.search {
+    margin: 2rem 0;
+}
+
+.panel {
+    margin: 2rem 0;
+    padding: 1.25rem;
+    border: 1px solid #2d3547;
+    border-radius: .75rem;
+    background: #1b2130;
+}
+
+.search label {
+    display: block;
+    margin-bottom: .5rem;
+    font-weight: 700;
+}
+
+.search-row {
+    display: flex;
+    gap: .75rem;
+}
+
+input,
+button {
+    border: 1px solid #394155;
+    border-radius: .5rem;
+    padding: .8rem 1rem;
+    font: inherit;
+}
+
+.danger {
+    width: 100%;
+    margin-top: .6rem;
+    border-color: #a43745;
+    background: #a43745;
+}
+
+.user-list {
+    padding: 0;
+    list-style: none;
+}
+
+.user-list a,
+.back-link {
+    color: #b9b1ff;
+}
+
+.user-list a {
+    display: block;
+    margin-bottom: .5rem;
+    padding: 1rem;
+    border: 1px solid #2d3547;
+    border-radius: .5rem;
+    background: #1b2130;
+    text-decoration: none;
+}
+
+.stacked-form {
+    display: grid;
+    gap: .5rem;
+    margin-top: 1rem;
+}
+
+input {
+    min-width: 0;
+    flex: 1;
+    background: #1b2130;
+    color: inherit;
+}
+
+button {
+    border-color: #6d5dfc;
+    background: #6d5dfc;
+    color: white;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.message {
+    padding: 1rem;
+    border-radius: .5rem;
+}
+
+.error {
+    background: #51232a;
+    color: #ffd7dc;
+}
+
+.movie-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+}
+
+.movie-card {
+    overflow: hidden;
+    border: 1px solid #2d3547;
+    border-radius: .75rem;
+    background: #1b2130;
+}
+
+.movie-card img,
+.poster-placeholder {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+}
+
+.poster-placeholder {
+    display: grid;
+    place-items: center;
+    background: #252c3b;
+    color: #aab2c4;
+}
+
+.movie-info {
+    padding: .9rem;
+}
+
+.movie-info h3,
+.movie-info p {
+    margin: 0 0 .4rem;
+}
+
+.movie-info small {
+    color: #aab2c4;
+}

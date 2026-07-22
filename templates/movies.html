@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Filme von {{ user.name }} | MoviWeb App{% endblock %}
+
+{% block content %}
+    <a class="back-link" href="{{ url_for('home') }}">← Alle Nutzer</a>
+    <h1>Lieblingsfilme von {{ user.name }}</h1>
+
+    <section class="panel">
+        <h2>Film über OMDb hinzufügen</h2>
+        <form class="search-row" method="post">
+            <input name="title" placeholder="Filmtitel" required>
+            <button type="submit">Hinzufügen</button>
+        </form>
+        {% if error %}
+            <p class="message error">{{ error }}</p>
+        {% endif %}
+    </section>
+
+    {% if movies %}
+        <div class="movie-grid">
+            {% for movie in movies %}
+                <article class="movie-card">
+                    {% if movie.poster_url %}
+                        <img src="{{ movie.poster_url }}" alt="Poster von {{ movie.title }}">
+                    {% else %}
+                        <div class="poster-placeholder">Kein Poster</div>
+                    {% endif %}
+                    <div class="movie-info">
+                        <h3>{{ movie.title }}</h3>
+                        {% if movie.year %}<p>{{ movie.year }}</p>{% endif %}
+                        {% if movie.director %}<p>Regie: {{ movie.director }}</p>{% endif %}
+                        {% if movie.rating is not none %}<p>IMDb: {{ movie.rating }}/10</p>{% endif %}
+
+                        <form class="stacked-form" action="{{ url_for('update_movie', user_id=user.id, movie_id=movie.id) }}" method="post">
+                            <input name="title" value="{{ movie.title }}" required>
+                            <button type="submit">Titel ändern</button>
+                        </form>
+                        <form action="{{ url_for('delete_movie', user_id=user.id, movie_id=movie.id) }}" method="post">
+                            <button class="danger" type="submit">Löschen</button>
+                        </form>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Noch keine Lieblingsfilme vorhanden.</p>
+    {% endif %}
+{% endblock %}
