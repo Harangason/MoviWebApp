@@ -1,6 +1,6 @@
 from flask import Flask, abort, redirect, render_template, request, url_for
 
-from data_manager import DataManager
+from data_manager import DataManager, DataManagerError, DuplicateMovieError
 from models import Movie
 from omdb_api import OMDbAPIError, get_movie_by_id, search_movies
 from sql_builder import configure_database, database_exists, initialize_database
@@ -9,18 +9,40 @@ app = Flask(__name__)
 data_manager = DataManager()
 
 
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template("404.html"), 404
+
+
+@app.errorhandler(DataManagerError)
+def handle_database_error(error):
+    app.logger.error("Database operation failed: %s", error, exc_info=True)
+    return render_template("500.html"), 500
+
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    app.logger.error("Unexpected server error: %s", error, exc_info=True)
+    return render_template("500.html"), 500
+
+
 
 @app.route("/")
-def home():
+def index():
     return render_template("index.html", users=data_manager.get_users())
 
 
 @app.route("/users", methods=["POST"])
-def add_user():
+def create_user():
     name = request.form.get("name", "").strip()
     if name:
         data_manager.create_user(name)
-    return redirect(url_for("home"))
+    return redirect(url_for("index"))
+
+
+@app.route("/users/<int:user_id>", methods=["GET"])
+def user_detail(user_id):
+    return user_movies(user_id)
 
 
 @app.route("/users/<int:user_id>/movies", methods=["GET", "POST"])
@@ -30,10 +52,12 @@ def user_movies(user_id):
         abort(404)
 
     error = None
+    status_code = 200
     if request.method == "POST":
         title = request.form.get("title", "").strip()
         if not title:
             error = "Bitte gib einen Filmtitel ein."
+            status_code = 400
         else:
             try:
                 search_result = search_movies(title)[0]
@@ -58,14 +82,20 @@ def user_movies(user_id):
                 )
                 data_manager.add_movie(movie)
                 return redirect(url_for("user_movies", user_id=user_id))
+            except DuplicateMovieError as duplicate_error:
+                error = str(duplicate_error)
+                status_code = 409
             except (OMDbAPIError, IndexError, KeyError, ValueError) as api_error:
                 error = str(api_error) or "Kein Film gefunden."
 
-    return render_template(
-        "movies.html",
-        user=user,
-        movies=data_manager.get_movies(user_id),
-        error=error,
+    return (
+        render_template(
+            "movies.html",
+            user=user,
+            movies=data_manager.get_movies(user_id),
+            error=error,
+        ),
+        status_code,
     )
 
 

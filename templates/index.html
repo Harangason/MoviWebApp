@@ -1,32 +1,47 @@
 {% extends "base.html" %}
-
-{% block title %}Nutzer | MoviWeb App{% endblock %}
-
 {% block content %}
-    <h1>MoviWeb App</h1>
+    <header class="page-heading">
+        <p class="eyebrow">Deine Filmsammlung</p>
+        <h1>Wer schaut heute?</h1>
+        <p class="lead">Wähle ein Profil und öffne die persönliche Liste der Lieblingsfilme.</p>
+    </header>
 
-    <section class="panel">
-        <h2>Nutzer hinzufügen</h2>
-        <form class="search-row" action="{{ url_for('add_user') }}" method="post">
-            <input name="name" placeholder="Name" required>
-            <button type="submit">Hinzufügen</button>
-        </form>
-    </section>
-
-    <section>
-        <h2>Nutzer</h2>
+    <section aria-labelledby="users-heading">
+        <div class="section-heading">
+            <h2 id="users-heading">Nutzer</h2>
+            <span class="count-badge">{{ users|length }}</span>
+        </div>
         {% if users %}
             <ul class="user-list">
                 {% for user in users %}
                     <li>
-                        <a href="{{ url_for('user_movies', user_id=user.id) }}">
-                            {{ user.name }}
+                        <a href="{{ url_for('user_detail', user_id=user.id) }}">
+                            <span class="user-avatar" aria-hidden="true">{{ user.name[0]|upper }}</span>
+                            <span class="user-name">{{ user.name }}</span>
+                            <span class="user-arrow" aria-hidden="true">→</span>
                         </a>
                     </li>
                 {% endfor %}
             </ul>
         {% else %}
-            <p>Noch keine Nutzer vorhanden.</p>
+            <div class="empty-state">
+                <span aria-hidden="true">🎬</span>
+                <h3>Noch keine Nutzer vorhanden</h3>
+                <p>Lege unten das erste Profil an und starte deine Sammlung.</p>
+            </div>
         {% endif %}
+    </section>
+
+    <section class="panel add-panel" aria-labelledby="add-user-heading">
+        <div>
+            <p class="eyebrow">Neues Profil</p>
+            <h2 id="add-user-heading">Nutzer hinzufügen</h2>
+            <p>Ein Name genügt – die Filmliste kannst du danach direkt befüllen.</p>
+        </div>
+        <form class="search-row" action="{{ url_for('create_user') }}" method="post">
+            <label class="sr-only" for="user-name">Name</label>
+            <input id="user-name" name="name" placeholder="Name des Nutzers" autocomplete="name" required>
+            <button type="submit"><span aria-hidden="true">＋</span> Hinzufügen</button>
+        </form>
     </section>
 {% endblock %}

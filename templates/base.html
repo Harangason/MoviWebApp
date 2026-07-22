@@ -8,13 +8,24 @@
 </head>
 <body>
     <header class="site-header">
-        <nav class="container" aria-label="Hauptnavigation">
-            <a class="brand" href="{{ url_for('home') }}">MoviWeb App</a>
+        <nav class="container nav-inner" aria-label="Hauptnavigation">
+            <a class="brand" href="{{ url_for('index') }}" aria-label="MoviWeb Startseite">
+                <span class="brand-mark" aria-hidden="true">▶</span>
+                <span>Movi<span>Web</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="{{ url_for('index') }}">Nutzer</a>
+                <a href="{{ url_for('add_movie') }}">Filmsuche</a>
+            </div>
         </nav>
     </header>
 
     <main class="container">
         {% block content %}{% endblock %}
     </main>
+
+    <footer class="site-footer">
+        <div class="container">Lieblingsfilme entdecken, sammeln und teilen.</div>
+    </footer>
 </body>
 </html>
