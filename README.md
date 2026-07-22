@@ -36,8 +36,7 @@ eine Sicherung mit der Endung `.pre-migration.bak` angelegt.
 ## Flask-Anwendung lokal starten
 
 ```powershell
-cd H:\OneDrive\AI_with_Python\Masterschool\Codio\Term_4\MoviWebApp
-.\venv\Scripts\Activate.ps1
+
 pip install -r requirements.txt
 python app.py
 ```
