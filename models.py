@@ -16,11 +16,19 @@ class User(db.Model):
 
 
 class Movie(db.Model):
+    __table_args__ = (
+        db.UniqueConstraint(
+            "user_id",
+            "imdb_id",
+            name="uq_movie_user_imdb",
+        ),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     director = db.Column(db.String(200))
     year = db.Column(db.Integer)
     rating = db.Column(db.Float)
     poster_url = db.Column(db.String(500))
-    imdb_id = db.Column(db.String(20), unique=True)
+    imdb_id = db.Column(db.String(20))
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)

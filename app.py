@@ -3,7 +3,12 @@ from flask import Flask, abort, redirect, render_template, request, url_for
 from data_manager import DataManager, DataManagerError, DuplicateMovieError
 from models import Movie
 from omdb_api import OMDbAPIError, get_movie_by_id, search_movies
-from sql_builder import configure_database, database_exists, initialize_database
+from sql_builder import (
+    configure_database,
+    database_exists,
+    initialize_database,
+    migrate_database,
+)
 
 app = Flask(__name__)
 data_manager = DataManager()
@@ -148,6 +153,7 @@ def add_movie(user_id=None):
 def main():
     if database_exists():
         configure_database(app)
+        migrate_database(app)
     else:
         initialize_database(app)
 
