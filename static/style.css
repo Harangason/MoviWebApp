@@ -875,7 +875,7 @@ button:active,
 }
 
 .movie-editor {
-    margin-top: .75rem;
+    margin: 0;
 }
 
 .movie-editor summary {
@@ -890,6 +890,8 @@ button:active,
 }
 
 .movie-editor[open] {
+    flex: 1 0 100%;
+    order: 10;
     border: 1px solid var(--border);
     border-radius: .75rem;
     padding: .65rem;
