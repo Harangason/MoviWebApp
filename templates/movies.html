@@ -94,14 +94,25 @@
                         </div>
                         {% if movie.director %}<p class="director">Regie: {{ movie.director }}</p>{% endif %}
                         {% if movie.note %}<p class="movie-note">{{ movie.note }}</p>{% endif %}
-                        <form class="stacked-form movie-actions" action="{{ url_for('update_movie', user_id=user.id, movie_id=movie.id) }}" method="post">
-                            <label for="title-{{ movie.id }}">Anzeigetitel</label><input id="title-{{ movie.id }}" name="title" value="{{ movie.title }}" required>
-                            <label for="note-{{ movie.id }}">Eigene Notiz</label><textarea id="note-{{ movie.id }}" name="note" rows="2" placeholder="Warum gehört dieser Film in deine Sammlung?">{{ movie.note or '' }}</textarea>
-                            <button class="secondary" type="submit">Änderungen speichern</button>
-                        </form>
+                        <details class="movie-editor">
+                            <summary class="icon-button" title="Filmdetails bearbeiten">
+                                <span aria-hidden="true">✎</span>
+                                <span class="sr-only">Filmdetails bearbeiten</span>
+                            </summary>
+                            <form class="stacked-form movie-actions" action="{{ url_for('update_movie', user_id=user.id, movie_id=movie.id) }}" method="post">
+                                <label for="title-{{ movie.id }}">Anzeigetitel</label><input id="title-{{ movie.id }}" name="title" value="{{ movie.title }}" required>
+                                <label for="note-{{ movie.id }}">Eigene Notiz</label><textarea id="note-{{ movie.id }}" name="note" rows="2" placeholder="Warum gehört dieser Film in deine Sammlung?">{{ movie.note or '' }}</textarea>
+                                <button class="secondary icon-button save-button" type="submit" aria-label="Änderungen speichern" title="Änderungen speichern"><span aria-hidden="true">💾</span></button>
+                            </form>
+                        </details>
                         <div class="card-actions">
-                            <form action="{{ url_for('set_favorite_movie', user_id=user.id) }}" method="post"><input type="hidden" name="movie_id" value="{{ movie.id }}"><button class="favorite-button" type="submit">{% if user.favorite_movie_id == movie.id %}♥ Lieblingsfilm{% else %}♡ Als Lieblingsfilm{% endif %}</button></form>
-                            <form action="{{ url_for('delete_movie', user_id=user.id, movie_id=movie.id) }}" method="post"><button class="danger" type="submit">Entfernen</button></form>
+                            <form action="{{ url_for('set_favorite_movie', user_id=user.id) }}" method="post">
+                                <input type="hidden" name="movie_id" value="{{ movie.id }}">
+                                <button class="favorite-button icon-button" type="submit" aria-label="{% if user.favorite_movie_id == movie.id %}Lieblingsfilm aufheben{% else %}Als Lieblingsfilm markieren{% endif %}" title="{% if user.favorite_movie_id == movie.id %}Lieblingsfilm aufheben{% else %}Als Lieblingsfilm markieren{% endif %}"><span aria-hidden="true">{% if user.favorite_movie_id == movie.id %}♥{% else %}♡{% endif %}</span></button>
+                            </form>
+                            <form action="{{ url_for('delete_movie', user_id=user.id, movie_id=movie.id) }}" method="post">
+                                <button class="danger icon-button" type="submit" aria-label="Aus Sammlung entfernen" title="Aus Sammlung entfernen"><span aria-hidden="true">×</span></button>
+                            </form>
                         </div>
                     </div>
                 </article>

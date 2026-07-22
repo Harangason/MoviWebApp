@@ -22,9 +22,24 @@
                 {% for user in users %}
                     <li>
                         <a class="user-profile-link" href="{{ url_for('user_detail', user_id=user.id) }}">
-                            <span class="user-avatar" aria-hidden="true">{{ user.name[0]|upper }}</span>
-                            <span class="user-name">{{ user.display_name }}<small>{{ user.movies|length }} Film{% if user.movies|length != 1 %}e{% endif %}</small></span>
-                            <span class="user-arrow" aria-hidden="true">→</span>
+                            {% set poster_movies = user.movies | selectattr('poster_url') | list %}
+                            <span class="profile-folder-cover" aria-hidden="true">
+                                <span class="profile-folder-tab"></span>
+                                {% if poster_movies %}
+                                    <span class="profile-poster-stack">
+                                        {% for movie in poster_movies[:3] %}
+                                            <img src="{{ movie.poster_url }}" alt="" loading="lazy">
+                                        {% endfor %}
+                                    </span>
+                                {% else %}
+                                    <span class="profile-folder-monogram">{{ user.name[0]|upper }}</span>
+                                {% endif %}
+                            </span>
+                            <span class="profile-folder-meta">
+                                <span class="user-avatar" aria-hidden="true">{{ user.name[0]|upper }}</span>
+                                <span class="user-name">{{ user.display_name }}<small>{{ user.movies|length }} Film{% if user.movies|length != 1 %}e{% endif %}</small></span>
+                                <span class="user-arrow" aria-hidden="true">→</span>
+                            </span>
                         </a>
                         <details class="user-management">
                             <summary>Profil verwalten</summary>
