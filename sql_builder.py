@@ -7,6 +7,13 @@ from models import db
 
 DATABASE_PATH = Path(__file__).resolve().parent / "data" / "movies.db"
 DATABASE_BACKUP_PATH = DATABASE_PATH.with_suffix(".db.pre-migration.bak")
+LEGACY_DATABASE_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "Term_3"
+    / "Movie_SQL_HTML_API"
+    / "data"
+    / "movies.db"
+)
 
 
 def database_exists():
@@ -30,14 +37,129 @@ def initialize_database(flask_app):
 
     with flask_app.app_context():
         db.create_all()
+    _import_legacy_term3_data()
 
 
 def migrate_database(flask_app):
     """Apply pending SQLite schema migrations and ensure all tables exist."""
     _migrate_movie_imdb_uniqueness()
+    _add_full_feature_columns()
 
     with flask_app.app_context():
         db.create_all()
+
+    _import_legacy_term3_data()
+
+
+def _add_full_feature_columns():
+    """Add fields used by the complete web feature set to older databases."""
+    if not DATABASE_PATH.is_file():
+        return
+
+    with closing(sqlite3.connect(DATABASE_PATH)) as connection:
+        user_columns = {
+            row[1] for row in connection.execute("PRAGMA table_info(user)")
+        }
+        movie_columns = {
+            row[1] for row in connection.execute("PRAGMA table_info(movie)")
+        }
+        changes = []
+        if "last_name" not in user_columns:
+            changes.append("ALTER TABLE user ADD COLUMN last_name VARCHAR(100) NOT NULL DEFAULT ''")
+        if "favorite_movie_id" not in user_columns:
+            changes.append("ALTER TABLE user ADD COLUMN favorite_movie_id INTEGER")
+        if "note" not in movie_columns:
+            changes.append("ALTER TABLE movie ADD COLUMN note TEXT")
+
+        if changes:
+            _backup_database()
+            for statement in changes:
+                connection.execute(statement)
+            connection.commit()
+
+
+def _import_legacy_term3_data():
+    """Import the shared Term 3 catalogue once for every legacy user.
+
+    Term 3 exposed one global catalogue to every user. Term 4 owns movies per
+    user, so copying the catalogue into each imported collection preserves the
+    behavior users had before the migration.
+    """
+    if not DATABASE_PATH.is_file() or not LEGACY_DATABASE_PATH.is_file():
+        return
+
+    with (
+        closing(sqlite3.connect(DATABASE_PATH)) as target,
+        closing(sqlite3.connect(LEGACY_DATABASE_PATH)) as source,
+    ):
+        target.execute(
+            "CREATE TABLE IF NOT EXISTS migration_state (key TEXT PRIMARY KEY)"
+        )
+        target.commit()
+        marker = "legacy_term3_full_import_v1"
+        if target.execute(
+            "SELECT 1 FROM migration_state WHERE key = ?", (marker,)
+        ).fetchone():
+            return
+
+        _backup_database()
+        legacy_users = source.execute(
+            "SELECT id, name, COALESCE(last_name, ''), my_favorite_movie FROM users"
+        ).fetchall()
+        legacy_movies = source.execute(
+            "SELECT id, title, year, rating, poster, note, imdb_id FROM movies"
+        ).fetchall()
+
+        for _, first_name, last_name, favorite_legacy_id in legacy_users:
+            row = target.execute(
+                "SELECT id FROM user WHERE name = ? AND last_name = ?",
+                (first_name, last_name),
+            ).fetchone()
+            if row:
+                user_id = row[0]
+            else:
+                cursor = target.execute(
+                    "INSERT INTO user (name, last_name) VALUES (?, ?)",
+                    (first_name, last_name),
+                )
+                user_id = cursor.lastrowid
+
+            imported_ids = {}
+            for legacy_id, title, year, rating, poster, note, imdb_id in legacy_movies:
+                existing = None
+                if imdb_id:
+                    existing = target.execute(
+                        "SELECT id FROM movie WHERE user_id = ? AND imdb_id = ?",
+                        (user_id, imdb_id),
+                    ).fetchone()
+                if not existing:
+                    existing = target.execute(
+                        "SELECT id FROM movie WHERE user_id = ? AND title = ? AND year = ?",
+                        (user_id, title, year),
+                    ).fetchone()
+                if existing:
+                    movie_id = existing[0]
+                else:
+                    cursor = target.execute(
+                        """
+                        INSERT INTO movie (
+                            title, director, year, rating, poster_url,
+                            imdb_id, note, user_id
+                        ) VALUES (?, NULL, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (title, year, rating, poster, imdb_id, note, user_id),
+                    )
+                    movie_id = cursor.lastrowid
+                imported_ids[legacy_id] = movie_id
+
+            if favorite_legacy_id in imported_ids:
+                target.execute(
+                    "UPDATE user SET favorite_movie_id = ? WHERE id = ?",
+                    (imported_ids[favorite_legacy_id], user_id),
+                )
+
+        target.execute("INSERT INTO migration_state (key) VALUES (?)", (marker,))
+        target.commit()
 
 
 def _migrate_movie_imdb_uniqueness():

@@ -3,6 +3,21 @@
 Eine Flask-Webanwendung zum Verwalten persönlicher Lieblingsfilme mit
 Filmdaten und Postern aus der OMDb-API.
 
+## Funktionen
+
+- Profile anlegen, bearbeiten und samt Filmsammlung löschen
+- Vor- und Nachnamen sowie persönlicher Lieblingsfilm
+- persönliche Filmsammlungen mit OMDb-Suche, Postern und IMDb-Daten
+- eigene Filmtitel und Notizen bearbeiten, Filme löschen
+- Sammlung durchsuchen sowie nach Bewertung und Jahr filtern und sortieren
+- Zufallsfilm, Durchschnitt, Median, bester/schlechtester Film und Histogramm
+- eigenständige HTML-Sammlung exportieren
+- JSON-API unter `/api/users` und kompatible Term-3-Endpunkte unter `/api/movies`
+- automatische, einmalige Übernahme der Nutzer und Filme aus dem Term-3-Projekt
+
+Vor der ersten Schema- oder Datenmigration wird im Ordner `data` automatisch
+eine Sicherung mit der Endung `.pre-migration.bak` angelegt.
+
 ## Lokal starten
 
 ```powershell

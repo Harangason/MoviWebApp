@@ -1,4 +1,7 @@
 from models import db, User, Movie
+import random
+import statistics
+
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
@@ -29,15 +32,20 @@ class DataManager:
                 "Die Datenbankänderung konnte nicht gespeichert werden."
             ) from error
 
-    def create_user(self, name):
-        user = User(name=name)
+    def create_user(self, name, last_name=""):
+        name = name.strip()
+        last_name = last_name.strip()
+        existing = User.query.filter_by(name=name, last_name=last_name).first()
+        if existing:
+            return existing
+        user = User(name=name, last_name=last_name)
         db.session.add(user)
         self._commit()
         return user
 
     def get_users(self):
         try:
-            return User.query.all()
+            return User.query.order_by(User.name, User.last_name).all()
         except SQLAlchemyError as error:
             db.session.rollback()
             raise DataManagerError(
@@ -53,9 +61,60 @@ class DataManager:
                 "Der Nutzer konnte nicht geladen werden."
             ) from error
 
-    def get_movies(self, user_id):
+    def update_user(self, user_id, name, last_name=""):
+        user = self.get_user(user_id)
+        if user is None:
+            return None
+        name = name.strip()
+        last_name = last_name.strip()
+        duplicate = User.query.filter(
+            User.id != user_id,
+            func.lower(User.name) == name.lower(),
+            func.lower(User.last_name) == last_name.lower(),
+        ).first()
+        if duplicate:
+            return False
+        user.name = name
+        user.last_name = last_name
+        self._commit()
+        return user
+
+    def delete_user(self, user_id):
+        user = self.get_user(user_id)
+        if user is None:
+            return False
+        user.favorite_movie_id = None
+        db.session.flush()
+        db.session.delete(user)
+        self._commit()
+        return True
+
+    def get_movies(
+        self,
+        user_id,
+        search="",
+        min_rating=None,
+        start_year=None,
+        end_year=None,
+        sort_by="title",
+    ):
         try:
-            return Movie.query.filter_by(user_id=user_id).all()
+            query = Movie.query.filter_by(user_id=user_id)
+            if search:
+                query = query.filter(Movie.title.ilike(f"%{search}%"))
+            if min_rating is not None:
+                query = query.filter(Movie.rating >= min_rating)
+            if start_year is not None:
+                query = query.filter(Movie.year >= start_year)
+            if end_year is not None:
+                query = query.filter(Movie.year <= end_year)
+
+            orderings = {
+                "rating": (Movie.rating.desc(), Movie.title.asc()),
+                "year": (Movie.year.desc(), Movie.title.asc()),
+                "title": (Movie.title.asc(),),
+            }
+            return query.order_by(*orderings.get(sort_by, orderings["title"])).all()
         except SQLAlchemyError as error:
             db.session.rollback()
             raise DataManagerError(
@@ -81,6 +140,9 @@ class DataManager:
                 "Die Sammlungsstatistik konnte nicht geladen werden."
             ) from error
 
+        movies = self.get_movies(user_id, sort_by="rating")
+        rated_movies = [movie for movie in movies if movie.rating is not None]
+        ratings = [movie.rating for movie in rated_movies]
         return {
             "count": count,
             "average_rating": (
@@ -90,6 +152,9 @@ class DataManager:
             ),
             "earliest_year": earliest_year,
             "latest_year": latest_year,
+            "median_rating": round(statistics.median(ratings), 1) if ratings else None,
+            "best_movie": rated_movies[0] if rated_movies else None,
+            "worst_movie": rated_movies[-1] if rated_movies else None,
         }
 
     def get_movie(self, user_id, movie_id):
@@ -106,11 +171,14 @@ class DataManager:
         self._commit("Dieser Film ist bereits in der Sammlung vorhanden.")
         return movie
 
-    def update_movie(self, user_id, movie_id, new_title):
+    def update_movie(self, user_id, movie_id, new_title=None, note=None):
         movie = self.get_movie(user_id, movie_id)
         if movie is None:
             return None
-        movie.title = new_title
+        if new_title is not None:
+            movie.title = new_title
+        if note is not None:
+            movie.note = note or None
         self._commit()
         return movie
 
@@ -118,7 +186,34 @@ class DataManager:
         movie = self.get_movie(user_id, movie_id)
         if movie is None:
             return False
+        user = self.get_user(user_id)
+        if user and user.favorite_movie_id == movie.id:
+            user.favorite_movie_id = None
         db.session.delete(movie)
+        self._commit()
+        return True
+
+    def get_movie_by_title(self, user_id, title):
+        try:
+            return Movie.query.filter(
+                Movie.user_id == user_id,
+                func.lower(Movie.title) == title.strip().lower(),
+            ).first()
+        except SQLAlchemyError as error:
+            db.session.rollback()
+            raise DataManagerError("Der Film konnte nicht geladen werden.") from error
+
+    def get_random_movie(self, user_id):
+        movies = self.get_movies(user_id)
+        return random.choice(movies) if movies else None
+
+    def set_favorite_movie(self, user_id, movie_id):
+        user = self.get_user(user_id)
+        if user is None:
+            return None
+        if movie_id is not None and self.get_movie(user_id, movie_id) is None:
+            return False
+        user.favorite_movie_id = movie_id
         self._commit()
         return True
 

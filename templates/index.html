@@ -6,6 +6,12 @@
         <p class="lead">Wähle ein Profil und öffne die persönliche Liste der Lieblingsfilme.</p>
     </header>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <p class="message {{ category }}" role="status">{{ message }}</p>
+        {% endfor %}
+    {% endwith %}
+
     <section aria-labelledby="users-heading">
         <div class="section-heading">
             <h2 id="users-heading">Nutzer</h2>
@@ -15,11 +21,25 @@
             <ul class="user-list">
                 {% for user in users %}
                     <li>
-                        <a href="{{ url_for('user_detail', user_id=user.id) }}">
+                        <a class="user-profile-link" href="{{ url_for('user_detail', user_id=user.id) }}">
                             <span class="user-avatar" aria-hidden="true">{{ user.name[0]|upper }}</span>
-                            <span class="user-name">{{ user.name }}</span>
+                            <span class="user-name">{{ user.display_name }}<small>{{ user.movies|length }} Film{% if user.movies|length != 1 %}e{% endif %}</small></span>
                             <span class="user-arrow" aria-hidden="true">→</span>
                         </a>
+                        <details class="user-management">
+                            <summary>Profil verwalten</summary>
+                            <form class="user-edit-form" action="{{ url_for('update_user', user_id=user.id) }}" method="post">
+                                <label for="edit-name-{{ user.id }}">Vorname</label>
+                                <input id="edit-name-{{ user.id }}" name="name" value="{{ user.name }}" required>
+                                <label for="edit-last-name-{{ user.id }}">Nachname</label>
+                                <input id="edit-last-name-{{ user.id }}" name="last_name" value="{{ user.last_name }}">
+                                <button class="secondary" type="submit">Profil speichern</button>
+                            </form>
+                            <form class="user-delete-form" action="{{ url_for('delete_user', user_id=user.id) }}" method="post" onsubmit="return confirm('Profil {{ user.display_name|e }} und die gesamte Filmsammlung wirklich löschen?');">
+                                <p>Beim Löschen werden auch alle {{ user.movies|length }} zugehörigen Filme entfernt.</p>
+                                <button class="danger" type="submit">Profil endgültig löschen</button>
+                            </form>
+                        </details>
                     </li>
                 {% endfor %}
             </ul>
@@ -36,11 +56,13 @@
         <div>
             <p class="eyebrow">Neues Profil</p>
             <h2 id="add-user-heading">Nutzer hinzufügen</h2>
-            <p>Ein Name genügt – die Filmliste kannst du danach direkt befüllen.</p>
+            <p>Lege ein persönliches Profil an und befülle danach direkt die Filmsammlung.</p>
         </div>
         <form class="search-row" action="{{ url_for('create_user') }}" method="post">
-            <label class="sr-only" for="user-name">Name</label>
-            <input id="user-name" name="name" placeholder="Name des Nutzers" autocomplete="name" required>
+            <label class="sr-only" for="user-name">Vorname</label>
+            <input id="user-name" name="name" placeholder="Vorname" autocomplete="given-name" required>
+            <label class="sr-only" for="user-last-name">Nachname</label>
+            <input id="user-last-name" name="last_name" placeholder="Nachname (optional)" autocomplete="family-name">
             <button type="submit"><span aria-hidden="true">＋</span> Hinzufügen</button>
         </form>
     </section>

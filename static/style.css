@@ -141,7 +141,7 @@ main.container {
 .collection-stats {
     margin-bottom: 2rem;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: .8rem;
 }
 
@@ -277,6 +277,72 @@ h2 {
     white-space: nowrap;
 }
 
+.user-name small {
+    display: block;
+    margin-top: .2rem;
+    color: var(--muted);
+    font-size: .75rem;
+    font-weight: 550;
+}
+
+.user-management {
+    margin-top: -.1rem;
+    border: 1px solid var(--border);
+    border-top: 0;
+    border-radius: 0 0 var(--radius) var(--radius);
+    background: var(--surface);
+}
+
+.user-management summary {
+    cursor: pointer;
+    padding: .75rem 1rem;
+    color: var(--muted);
+    font-size: .82rem;
+    font-weight: 750;
+    list-style-position: inside;
+}
+
+.user-management[open] summary {
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+}
+
+.user-edit-form,
+.user-delete-form {
+    display: grid;
+    gap: .65rem;
+    padding: 1rem;
+}
+
+.user-edit-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.user-edit-form label {
+    color: var(--muted);
+    font-size: .75rem;
+    font-weight: 750;
+}
+
+.user-edit-form button {
+    grid-column: 1 / -1;
+}
+
+.user-delete-form {
+    border-top: 1px solid var(--border);
+}
+
+.user-delete-form p {
+    margin: 0;
+    color: var(--muted);
+    font-size: .78rem;
+    line-height: 1.45;
+}
+
+.user-delete-form .danger {
+    justify-self: start;
+}
+
 .user-arrow {
     color: var(--muted);
     font-size: 1.35rem;
@@ -351,7 +417,8 @@ input::placeholder {
 }
 
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 .22rem rgb(244 185 66 / 13%);
 }
@@ -682,5 +749,193 @@ button:active,
     *::after {
         scroll-behavior: auto !important;
         transition-duration: .01ms !important;
+    }
+}
+
+/* Full collection toolkit */
+.hero-actions,
+.card-actions,
+.extreme-stats {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .75rem;
+}
+
+.secondary-link {
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text);
+}
+
+.favorite-banner,
+.random-pick {
+    margin-block: 1.25rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid rgb(244 185 66 / 40%);
+    border-radius: var(--radius);
+    background: linear-gradient(120deg, rgb(244 185 66 / 16%), var(--surface));
+}
+
+.favorite-banner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.favorite-banner > span {
+    color: var(--accent);
+    font-size: 1.6rem;
+}
+
+.favorite-banner form {
+    margin-left: auto;
+}
+
+.text-button,
+.favorite-button {
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+}
+
+.extreme-stats {
+    justify-content: space-between;
+    margin: -1rem 0 2rem;
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+.tools-panel,
+.histogram-panel {
+    margin-block: 2rem;
+}
+
+.filter-form {
+    display: grid;
+    grid-template-columns: minmax(12rem, 2fr) repeat(3, minmax(7rem, 1fr)) minmax(9rem, 1fr);
+    gap: .85rem;
+    align-items: end;
+}
+
+.filter-form label {
+    display: grid;
+    gap: .4rem;
+    color: var(--muted);
+    font-size: .78rem;
+    font-weight: 750;
+}
+
+.filter-form input,
+.filter-form select,
+.movie-actions textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: .7rem;
+    padding: .75rem;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+}
+
+.filter-actions {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+}
+
+.filter-actions a {
+    color: var(--muted);
+    font-size: .85rem;
+}
+
+.random-pick h2 {
+    margin-block: .15rem;
+}
+
+.movie-card.is-favorite {
+    box-shadow: 0 0 0 2px var(--accent), var(--shadow);
+}
+
+.movie-note {
+    border-left: 3px solid var(--accent);
+    padding-left: .7rem;
+    color: var(--muted);
+    font-style: italic;
+}
+
+.card-actions {
+    justify-content: space-between;
+    margin-top: 1rem;
+}
+
+.card-actions .danger {
+    margin-top: 0;
+}
+
+.rating-chart {
+    display: grid;
+    gap: .65rem;
+    margin-top: 1.25rem;
+}
+
+.rating-bar-row {
+    display: grid;
+    grid-template-columns: minmax(8rem, 14rem) 1fr 2rem;
+    align-items: center;
+    gap: .75rem;
+    font-size: .82rem;
+}
+
+.rating-bar-row > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rating-track {
+    height: .7rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--border);
+}
+
+.rating-track i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #de7c32, var(--accent));
+}
+
+@media (max-width: 900px) {
+    .collection-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .filter-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .collection-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-form {
+        grid-template-columns: 1fr;
+    }
+
+    .hero-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .rating-bar-row {
+        grid-template-columns: minmax(6rem, 9rem) 1fr 1.8rem;
+    }
+
+    .user-edit-form {
+        grid-template-columns: 1fr;
     }
 }
