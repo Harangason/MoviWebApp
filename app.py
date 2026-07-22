@@ -82,6 +82,7 @@ def user_movies(user_id):
             "movies.html",
             user=user,
             movies=data_manager.get_movies(user_id),
+            stats=data_manager.get_collection_stats(user_id),
             error=error,
         ),
         status_code,

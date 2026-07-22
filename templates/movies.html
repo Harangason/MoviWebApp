@@ -4,22 +4,44 @@
 
 {% block content %}
     <a class="back-link" href="{{ url_for('index') }}">← Alle Nutzer</a>
-    <header class="page-heading movie-heading">
-        <p class="eyebrow">Persönliche Sammlung</p>
-        <h1>Filme von {{ user.name }}</h1>
-        <p class="lead">{{ movies|length }} Lieblingsfilm{% if movies|length != 1 %}e{% endif %} gespeichert</p>
+    <header class="collection-hero">
+        <div class="page-heading movie-heading">
+            <p class="eyebrow">Persönliche Sammlung</p>
+            <h1>Filme von {{ user.name }}</h1>
+            <p class="lead">Lieblingsfilme entdecken, organisieren und mit verlässlichen OMDb-Daten im Blick behalten.</p>
+        </div>
+        <a class="button-link hero-action" href="{{ url_for('add_movie', user_id=user.id) }}">＋ Film entdecken</a>
     </header>
+
+    <section class="collection-stats" aria-label="Sammlungsübersicht">
+        <div class="stat-card">
+            <span class="stat-value">{{ stats.count }}</span>
+            <span class="stat-label">Film{% if stats.count != 1 %}e{% endif %}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value">{% if stats.average_rating is not none %}★ {{ stats.average_rating }}{% else %}—{% endif %}</span>
+            <span class="stat-label">Ø IMDb-Bewertung</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value">
+                {% if stats.earliest_year and stats.latest_year %}
+                    {% if stats.earliest_year == stats.latest_year %}{{ stats.earliest_year }}{% else %}{{ stats.earliest_year }}–{{ stats.latest_year }}{% endif %}
+                {% else %}—{% endif %}
+            </span>
+            <span class="stat-label">Filmjahre</span>
+        </div>
+    </section>
 
     <section class="panel add-panel" aria-labelledby="add-movie-heading">
         <div>
             <p class="eyebrow">OMDb-Filmsuche</p>
-            <h2 id="add-movie-heading">Film hinzufügen</h2>
-            <p>Gib einen Titel ein. Filmdaten und Poster werden automatisch ergänzt.</p>
+            <h2 id="add-movie-heading">Den richtigen Film finden</h2>
+            <p>Prüfe mehrere Treffer, bevor du einen Film samt Poster, Jahr, Regie und IMDb-Bewertung speicherst.</p>
         </div>
-        <form class="search-row" action="{{ url_for('user_movies', user_id=user.id) }}" method="post">
+        <form class="search-row" action="{{ url_for('add_movie', user_id=user.id) }}" method="get">
             <label class="sr-only" for="movie-title">Filmtitel</label>
-            <input id="movie-title" name="title" placeholder="z. B. The Matrix" required>
-            <button type="submit"><span aria-hidden="true">⌕</span> Suchen & hinzufügen</button>
+            <input id="movie-title" name="query" type="search" placeholder="z. B. The Matrix" required>
+            <button type="submit"><span aria-hidden="true">⌕</span> Treffer durchsuchen</button>
         </form>
         {% if error %}
             <p class="message error">{{ error }}</p>
@@ -31,7 +53,9 @@
             {% for movie in movies %}
                 <article class="movie-card">
                     {% if movie.poster_url %}
-                        <img src="{{ movie.poster_url }}" alt="Poster von {{ movie.title }}">
+                        {% if movie.imdb_id %}<a class="poster-link" href="https://www.imdb.com/title/{{ movie.imdb_id }}/" target="_blank" rel="noreferrer" aria-label="{{ movie.title }} bei IMDb öffnen">{% endif %}
+                            <img src="{{ movie.poster_url }}" alt="Poster von {{ movie.title }}">
+                        {% if movie.imdb_id %}</a>{% endif %}
                     {% else %}
                         <div class="poster-placeholder">Kein Poster</div>
                     {% endif %}
@@ -39,17 +63,23 @@
                         <h3>{{ movie.title }}</h3>
                         <div class="movie-meta">
                             {% if movie.year %}<span>{{ movie.year }}</span>{% endif %}
-                            {% if movie.rating is not none %}<span class="rating">★ {{ movie.rating }}</span>{% endif %}
+                            {% if movie.rating is not none %}
+                                {% if movie.imdb_id %}
+                                    <a class="rating" href="https://www.imdb.com/title/{{ movie.imdb_id }}/" target="_blank" rel="noreferrer" title="Gespeicherte IMDb-Bewertung – Quelle öffnen">★ {{ movie.rating }} <span aria-hidden="true">↗</span></a>
+                                {% else %}
+                                    <span class="rating" title="Gespeicherte IMDb-Bewertung">★ {{ movie.rating }}</span>
+                                {% endif %}
+                            {% endif %}
                         </div>
                         {% if movie.director %}<p class="director">Regie: {{ movie.director }}</p>{% endif %}
 
                         <form class="stacked-form movie-actions" action="{{ url_for('update_movie', user_id=user.id, movie_id=movie.id) }}" method="post">
-                            <label class="sr-only" for="movie-{{ movie.id }}">Filmtitel bearbeiten</label>
+                            <label for="movie-{{ movie.id }}">Eigener Anzeigetitel</label>
                             <input id="movie-{{ movie.id }}" name="title" value="{{ movie.title }}" required>
                             <button class="secondary" type="submit">Titel speichern</button>
                         </form>
                         <form action="{{ url_for('delete_movie', user_id=user.id, movie_id=movie.id) }}" method="post">
-                            <button class="danger" type="submit">Film löschen</button>
+                            <button class="danger" type="submit">Aus Sammlung entfernen</button>
                         </form>
                     </div>
                 </article>

@@ -1,4 +1,5 @@
 from models import db, User, Movie
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 
@@ -60,6 +61,36 @@ class DataManager:
             raise DataManagerError(
                 "Die Filme konnten nicht geladen werden."
             ) from error
+
+    def get_collection_stats(self, user_id):
+        """Return compact aggregate data for a user's collection."""
+        try:
+            count, average_rating, earliest_year, latest_year = (
+                db.session.query(
+                    func.count(Movie.id),
+                    func.avg(Movie.rating),
+                    func.min(Movie.year),
+                    func.max(Movie.year),
+                )
+                .filter(Movie.user_id == user_id)
+                .one()
+            )
+        except SQLAlchemyError as error:
+            db.session.rollback()
+            raise DataManagerError(
+                "Die Sammlungsstatistik konnte nicht geladen werden."
+            ) from error
+
+        return {
+            "count": count,
+            "average_rating": (
+                round(average_rating, 1)
+                if average_rating is not None
+                else None
+            ),
+            "earliest_year": earliest_year,
+            "latest_year": latest_year,
+        }
 
     def get_movie(self, user_id, movie_id):
         try:
